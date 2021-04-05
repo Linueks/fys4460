@@ -1,0 +1,71 @@
+LAMMPS (29 Oct 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones gas
+units lj
+dimension 3
+# Periodic boundiaries
+boundary p p p
+atom_style atomic
+
+variable seed equal 87287
+variable sigma equal 3.405
+variable b equal 5.72
+variable reduced_density equal 4/((${b}/${sigma})^3)
+variable reduced_density equal 4/((5.72/${sigma})^3)
+variable reduced_density equal 4/((5.72/3.405)^3)
+variable temperature equal 1.5
+variable num_box equal 20
+variable radius_min equal 20/${b}
+variable radius_min equal 20/5.72
+variable radius_max equal 30/${b}
+variable radius_max equal 30/5.72
+
+# Set fcc lattice with specified density
+lattice fcc ${reduced_density}
+lattice fcc 0.843768394410006
+Lattice spacing in x,y,z = 1.6798825 1.6798825 1.6798825
+region simbox block 0 ${num_box} 0 ${num_box} 0 ${num_box}
+region simbox block 0 20 0 ${num_box} 0 ${num_box}
+region simbox block 0 20 0 20 0 ${num_box}
+region simbox block 0 20 0 20 0 20
+create_box 2 simbox
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (33.597651 33.597651 33.597651)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 box
+Created 32000 atoms
+  create_atoms CPU = 0.004 seconds
+
+variable box_len equal lx
+
+mass * 1.0
+velocity all create ${temperature} ${seed}
+velocity all create 1.5 ${seed}
+velocity all create 1.5 87287
+
+pair_style lj/cut 3.0
+pair_coeff * * 1.0 1.0
+
+fix 1 all nvt temp ${temperature} ${temperature} 0.5
+fix 1 all nvt temp 1.5 ${temperature} 0.5
+fix 1 all nvt temp 1.5 1.5 0.5
+
+thermo 100
+run 1000
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.3
+  ghost atom cutoff = 3.3
+  binsize = 1.65, bins = 21 21 21
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 19.23 | 19.23 | 19.23 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          1.5   -6.9322187            0    -4.682289   -5.2444747 
+     100   0.83477058   -5.8432169            0   -4.5911002   0.42024456 
+     200   0.89433697   -5.7525149            0   -4.4110513   0.95945149 
