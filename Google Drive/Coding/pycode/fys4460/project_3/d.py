@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import scipy.ndimage as spi
 import skimage as ski
 from skimage.measure import label, regionprops
-
 plt.style.use('ggplot')
 
 
@@ -12,7 +11,6 @@ def cumulative_distribution(sample):
     norm = np.max(sum)
 
     return sum / norm
-
 
 
 def log_bin(data, n_bins=10):
