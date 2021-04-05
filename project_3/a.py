@@ -1,14 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.ndimage as spi
 import skimage as ski
 from skimage.measure import label, regionprops
-
 plt.style.use('ggplot')
 
 
 
-def density_of_spanning_clusters(p, samples=1, system_shape = (10, 10)):
+def density_of_spanning_clusters(p, system_shape = (10, 10)):
     """
     Calculates P(p, L), passing in a shape for L in case I want to make
     systems that are not squares. Here p is the probability of a site
@@ -18,50 +16,55 @@ def density_of_spanning_clusters(p, samples=1, system_shape = (10, 10)):
     side to the other along a path connected by manhattan distance.
     """
 
-    system = np.random.rand(system_shape[0], system_shape[1])
+    system = np.random.rand(system_shape[0], system_shape[1]) < p
+    #print(system)
     labels, num = label(system, return_num=True, connectivity=1)
+    #print(np.unique(labels, return_counts=True))
     props = regionprops(labels)
+    #print(props)
+    #print(np.unique(props, return_counts=True))
 
     n_percolating = 0
     percolating_area = 0
 
-    for i in range(samples):
-        for prop in props:
-            row_min, col_min, row_max, col_max = prop.bbox
+    for prop in props:
+        #print(prop.area)
+        row_min, col_min, row_max, col_max = prop.bbox
 
-            if row_max - row_min == system_shape[0]\
-            or col_max - col_min == system_shape[1]:
-                n_percolating += 1
-                percolating_area += prop.area
-
-
-        total_area = system_shape[0] * system_shape[1]
+        if row_max - row_min == system_shape[0]\
+        or col_max - col_min == system_shape[1]:
+            n_percolating += 1
+            percolating_area += prop.area
 
 
-    return percolating_area / (total_area), n_percolating
+    total_area = system_shape[0] * system_shape[1]
+
+    return percolating_area / (total_area)#, n_percolating
 
 
 
 if __name__=='__main__':
     np.random.seed(1337)
-    density_of_spanning_clusters(0.5)
 
-    number_of_systems = 100
+    number_of_systems = 10
     probabilities = np.linspace(0, 1, number_of_systems)
     #system_sizes = np.array([1, 2, 10, 100, 500])
     system_sizes = np.array([50, 100, 200, 300, 500])
-
     fig, ax = plt.subplots(figsize=(16, 10))
+    print(system_sizes)
 
     for l in system_sizes:
+        print(l)
         densities = np.zeros(len(probabilities))
         n_percolating_systems = 0
-
+        #print(l)
         for i in range(number_of_systems):
             p = probabilities[i]
-            densities[i], n_percolating = density_of_spanning_clusters(p,
-                                                system_shape = (l, l))
-            n_percolating_systems += n_percolating > 0
+            #print(p)
+            """densities[i], n_percolating = density_of_spanning_clusters(p,
+                                                system_shape = (l, l))"""
+            densities[i] = density_of_spanning_clusters(p, system_shape=(l, l))
+            #n_percolating_systems += n_percolating > 0
 
         ax.plot(probabilities, densities, label=f'$L = {l}$')
 
